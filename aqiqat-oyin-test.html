@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Жеке тест: Ақиқат кестесін тұрғызу — 9-сынып</title>
+<style>
+:root{
+  --bg:#0b1020; --card:#131a2e; --text:#e7ecfb; --muted:#93a0c2;
+  --accent:#5aa5ff; --accent2:#3fd39a; --border:#233055; --lock:#ffcf4d; --bad:#ff6b6b;
+  --tintA: rgba(90,165,255,0.22); --tintG: rgba(63,211,154,0.22); --tintB: rgba(255,107,107,0.22);
+  color-scheme: dark;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0; color:var(--text); font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  background-color:var(--bg);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(90,165,255,.06) 0px, rgba(90,165,255,.06) 1px, transparent 1px, transparent 26px),
+    repeating-linear-gradient(90deg, rgba(90,165,255,.06) 0px, rgba(90,165,255,.06) 1px, transparent 1px, transparent 26px);
+  background-attachment:fixed;
+}
+header{position:sticky; top:0; z-index:5; background:var(--accent); color:#fff;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 16px 14px; text-align:center;}
+header h1{margin:0; font-size:1.05rem; font-weight:700;}
+header p{margin:4px 0 0; font-size:.8rem; opacity:.92;}
+main{max-width:640px; margin:0 auto; padding:16px;}
+.card{background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:14px;}
+.card h2{margin:0 0 10px; font-size:1.05rem; color:var(--accent);}
+.nameRow{display:flex; gap:8px; align-items:center; margin-bottom:10px; flex-wrap:wrap;}
+.nameRow input{flex:1; min-width:160px; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:.9rem;}
+.attemptsBadge{display:inline-block; background:var(--lock); color:#2a2000; font-weight:700; font-size:.8rem; padding:4px 10px; border-radius:10px;}
+.qItem{border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; background:var(--card);}
+.qItem.disabled{opacity:.65;}
+.qItem p.q{font-weight:700; margin:0 0 8px; font-size:.92rem;}
+.opt{display:block; width:100%; text-align:left; border:1px solid var(--border); background:var(--bg); color:var(--text);
+  padding:9px 12px; border-radius:8px; margin-bottom:6px; font-size:.9rem;}
+.opt.sel{border-color:var(--accent); background:var(--tintA);}
+.opt.correctSel{border-color:var(--accent2); background:var(--tintG);}
+.opt.wrongSel{border-color:var(--bad); background:var(--tintB);}
+.checkAllBtn{width:100%; padding:12px; border:none; border-radius:10px; background:var(--accent);
+  color:#fff; font-size:.95rem; font-weight:700;}
+.unlockBtn{width:100%; margin-top:10px; padding:12px; border:none; border-radius:10px;
+  background:var(--accent2); color:#fff; font-size:.95rem; font-weight:700;}
+.finalBox{text-align:center; padding:14px; border-radius:10px; background:var(--bg); border:1px solid var(--border); margin-top:10px;}
+.finalBox.salute{background:linear-gradient(135deg, var(--tintA), var(--tintG)); border-color:var(--accent); font-size:1.05rem; font-weight:700;}
+.confetti{position:fixed; top:-12px; width:8px; height:14px; opacity:.95; z-index:50; animation-name:fall; animation-timing-function:linear; animation-fill-mode:forwards;}
+@keyframes fall{ to { transform: translateY(110vh) rotate(360deg); opacity:.25; } }
+footer{text-align:center; color:var(--muted); font-size:.78rem; padding:20px 16px 30px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧠 Жеке тест: Ақиқат кестесін тұрғызу</h1>
+  <p>9-сынып · ІІ тоқсан · 4-сабақ</p>
+</header>
+
+<main>
+  <div class="card" id="quizCard">
+    <h2>12 сұрақ</h2>
+    <div class="nameRow">
+      <input type="text" id="studentName" placeholder="Аты-тегіңді жаз...">
+      <span class="attemptsBadge" id="attemptsBadge"></span>
+    </div>
+    <p style="color:var(--muted); font-size:.82rem;">⚠️ Тапсыру мүмкіндігі — <b>2 рет</b>. Нәтиже журналға қойылады.</p>
+    <div id="qList"></div>
+    <button class="checkAllBtn" id="checkAllBtn">✅ Тапсыру</button>
+    <div id="afterSubmit"></div>
+  </div>
+</main>
+
+<footer>9-сынып · Информатика · Ақиқат кестесін тұрғызу</footer>
+
+<script>
+var quiz = [
+  {q:"F=A∧¬B, A=0, B=0 болғанда F неге тең?", opts:["0","1","Анықталмаған"], correct:0},
+  {q:"F=A∧¬B, A=1, B=0 болғанда F неге тең?", opts:["0","1","2"], correct:1},
+  {q:"F=A∧¬B, A=1, B=1 болғанда F неге тең?", opts:["0","1","Анықтау мүмкін емес"], correct:0},
+  {q:"F=A∧¬B, A=0, B=1 болғанда F неге тең?", opts:["1","0","Екеуі де дұрыс"], correct:1},
+  {q:"2 айнымалыда (A,B) ақиқаттық кестеде неше жол болады?", opts:["2","4","8"], correct:1},
+  {q:"Кіріс комбинацияларын қалай жазу ұсынылады?", opts:["Кездейсоқ ретпен","Жүйелі: 00, 01, 10, 11","Тек жұп сандарды"], correct:1},
+  {q:"Амалдардың орындалу реті қандай (жақша жоқ болса)?", opts:["НЕМЕСЕ → ЖӘНЕ → ЕМЕС","ЕМЕС → ЖӘНЕ → НЕМЕСЕ","ЖӘНЕ → ЕМЕС → НЕМЕСЕ"], correct:1},
+  {q:"«Аралық (көмекші) баған» не үшін ашылады?", opts:["Кестені әдемі ету үшін","Күрделі өрнекті қадаммен, қатесіз есептеу үшін","Жолдарды азайту үшін"], correct:1},
+  {q:"A=1, B=0 жолында біреу ¬B=0, F=0 деп жазыпты (F=A∧¬B үшін). Бұл дұрыс па?", opts:["Иә, дұрыс","Жоқ, қате: ¬B=1, F=1 болуы керек","Жоқ, F=0 дұрыс, бірақ ¬B=1"], correct:1},
+  {q:"«Құрылғы рұқсат бар ЖӘНЕ тыйым жоқ болғанда іске қосылады» дегенде қай амал қолданылады?", opts:["НЕМЕСЕ","ЖӘНЕ","ЕМЕС"], correct:1},
+  {q:"Кестені құрғаннан кейін неге бір жолды қолмен қайта тексеру ұсынылады?", opts:["Уақыт өткізу үшін","Қатені ерте табу үшін","Міндетті емес, кездейсоқ"], correct:1},
+  {q:"F=A∧¬B функциясында F қашан ғана 1 болады?", opts:["A=0 болғанда әрқашан","Тек A=1 және B=0 болғанда","Тек B=1 болғанда"], correct:1}
+];
+
+var MAX_ATTEMPTS = 2;
+var answers = [];
+for (var i=0;i<quiz.length;i++){ answers.push(null); }
+
+function getAttempts(){ var v = localStorage.getItem('aqoyq_attempts'); return v ? parseInt(v) : 0; }
+function getBest(){ var v = localStorage.getItem('aqoyq_best'); return v===null? null : parseInt(v); }
+function getName(){ return localStorage.getItem('aqoyq_name') || ''; }
+
+function attachOptHandlers(){
+  var qList = document.getElementById('qList');
+  var opts = qList.getElementsByTagName('button');
+  for (var i=0;i<opts.length;i++){
+    opts[i].onclick = function(){
+      if(this.disabled) return;
+      var qi = parseInt(this.getAttribute('data-qi'));
+      var oi = parseInt(this.getAttribute('data-oi'));
+      answers[qi] = oi;
+      var sib = qList.querySelectorAll('.opt[data-qi="'+qi+'"]');
+      for (var j=0;j<sib.length;j++){ sib[j].classList.remove('sel'); }
+      this.classList.add('sel');
+    };
+  }
+}
+
+function renderQuestions(locked){
+  var qList = document.getElementById('qList');
+  var html = '';
+  for (var qi=0; qi<quiz.length; qi++){
+    var item = quiz[qi];
+    html += '<div class="qItem'+(locked?' disabled':'')+'"><p class="q">'+(qi+1)+'. '+item.q+'</p>';
+    for (var oi=0; oi<item.opts.length; oi++){
+      html += '<button class="opt" data-qi="'+qi+'" data-oi="'+oi+'" '+(locked?'disabled':'')+'>'+item.opts[oi]+'</button>';
+    }
+    html += '</div>';
+  }
+  qList.innerHTML = html;
+  if(!locked) attachOptHandlers();
+}
+
+function fireConfetti(){
+  var colors = ['#5aa5ff','#ffcf4d','#3fd39a','#ff8fd1','#8a5cff'];
+  for (var i=0;i<70;i++){
+    (function(){
+      var c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = (Math.random()*100)+'vw';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDuration = (2+Math.random()*2.2)+'s';
+      c.style.animationDelay = (Math.random()*0.6)+'s';
+      document.body.appendChild(c);
+      setTimeout(function(){ c.remove(); }, 5200);
+    })();
+  }
+}
+
+(function initQuiz(){
+  document.getElementById('studentName').value = getName();
+  var used = getAttempts();
+  var remaining = MAX_ATTEMPTS - used;
+  document.getElementById('attemptsBadge').textContent = 'Әрекет: '+Math.max(remaining,0)+'/'+MAX_ATTEMPTS;
+
+  if(remaining <= 0){
+    renderQuestions(true);
+    document.getElementById('checkAllBtn').style.display = 'none';
+    var best = getBest();
+    document.getElementById('afterSubmit').innerHTML =
+      '<div class="finalBox">🔒 Тапсыру мүмкіндігің аяқталды.<br>'+
+      '<b>'+(getName()||'Оқушы')+'</b> — Соңғы нәтиже: <b>'+best+'/'+quiz.length+'</b><br>'+
+      '<span style="color:var(--muted); font-size:.82rem;">Бұл нәтижені мұғаліміңе көрсет.</span></div>';
+    return;
+  }
+
+  renderQuestions(false);
+
+  document.getElementById('checkAllBtn').onclick = function(){
+    var name = document.getElementById('studentName').value.replace(/^\s+|\s+$/g,'');
+    if(!name){ alert('Алдымен аты-тегіңді жаз!'); return; }
+    var hasEmpty = false;
+    for (var i=0;i<answers.length;i++){ if(answers[i]===null){ hasEmpty = true; break; } }
+    if(hasEmpty){ alert('Барлық сұраққа жауап бер!'); return; }
+
+    localStorage.setItem('aqoyq_name', name);
+
+    var correct = 0;
+    var qList = document.getElementById('qList');
+    for (var qi=0; qi<quiz.length; qi++){
+      var item = quiz[qi];
+      var opts = qList.querySelectorAll('.opt[data-qi="'+qi+'"]');
+      for (var oi=0; oi<opts.length; oi++){
+        opts[oi].disabled = true;
+        opts[oi].classList.remove('sel');
+        if(oi === answers[qi]){
+          opts[oi].classList.add(oi === item.correct ? 'correctSel' : 'wrongSel');
+        }
+      }
+      if(answers[qi] === item.correct) correct++;
+    }
+    var allItems = qList.querySelectorAll('.qItem');
+    for (var k=0;k<allItems.length;k++){ allItems[k].classList.add('disabled'); }
+
+    var newUsed = getAttempts() + 1;
+    var prevBest = getBest();
+    var bestScore = (prevBest === null) ? correct : Math.max(prevBest, correct);
+    localStorage.setItem('aqoyq_attempts', newUsed);
+    localStorage.setItem('aqoyq_best', bestScore);
+
+    var remainingNow = MAX_ATTEMPTS - newUsed;
+    document.getElementById('attemptsBadge').textContent = 'Әрекет: '+Math.max(remainingNow,0)+'/'+MAX_ATTEMPTS;
+    document.getElementById('checkAllBtn').style.display = 'none';
+
+    var html = '';
+    if(correct === quiz.length){
+      html = '<div class="finalBox salute">🎆🎇🎉 ҚҰТТЫҚТАЙМЫЗ, '+name+'! 🎉🎇🎆<br>Сен барлық '+quiz.length+' сұраққа дұрыс жауап бердің! Керемет нәтиже! 🏆</div>';
+      fireConfetti();
+    } else {
+      html = '<div class="finalBox"><b>'+name+'</b> — Бұл әрекеттегі ұпай: <b>'+correct+'/'+quiz.length+'</b>';
+      if(remainingNow > 0){
+        html += '<br><span style="color:var(--muted); font-size:.82rem;">Тағы '+remainingNow+' рет тапсыруға болады.</span>'+
+        '<button class="unlockBtn" id="retryBtn" style="margin-top:10px;">🔁 Қайта тапсыру</button>';
+      } else {
+        html += '<br><b>Соңғы (ең жақсы) нәтиже: '+bestScore+'/'+quiz.length+'</b><br>'+
+        '<span style="color:var(--muted); font-size:.82rem;">Әрекет аяқталды.</span>';
+      }
+      html += '</div>';
+    }
+    document.getElementById('afterSubmit').innerHTML = html;
+
+    if(remainingNow > 0 && correct !== quiz.length){
+      document.getElementById('retryBtn').onclick = function(){
+        for (var i=0;i<answers.length;i++){ answers[i] = null; }
+        document.getElementById('afterSubmit').innerHTML = '';
+        document.getElementById('checkAllBtn').style.display = 'block';
+        renderQuestions(false);
+      };
+    }
+  };
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ойын: Ақиқат кестесін тұрғызу — 9-сынып</title>
+<style>
+:root{
+  --bg:#0b1020; --card:#131a2e; --text:#e7ecfb; --muted:#93a0c2;
+  --accent:#5aa5ff; --accent2:#3fd39a; --gold:#ffcf4d; --border:#233055; --bad:#ff6b6b;
+  --tintA: rgba(90,165,255,0.22); --tintG: rgba(63,211,154,0.22); --tintB: rgba(255,107,107,0.22);
+  color-scheme: dark;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{margin:0; color:var(--text); font-family:-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  background-color:var(--bg);
+  background-image:
+    repeating-linear-gradient(0deg, rgba(90,165,255,.06) 0px, rgba(90,165,255,.06) 1px, transparent 1px, transparent 26px),
+    repeating-linear-gradient(90deg, rgba(90,165,255,.06) 0px, rgba(90,165,255,.06) 1px, transparent 1px, transparent 26px);
+  background-attachment:fixed;
+  min-height:100%;
+}
+header{position:sticky; top:0; z-index:5; background:linear-gradient(120deg,var(--accent),#8a5cff); color:#fff;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px; text-align:center;}
+header h1{margin:0; font-size:1.02rem; font-weight:800;}
+header p{margin:3px 0 0; font-size:.78rem; opacity:.9;}
+.progressWrap{background:var(--border); height:8px; border-radius:6px; overflow:hidden; margin:10px 16px 0;}
+.progressBar{height:100%; background:var(--gold); width:0%; transition:width .3s;}
+main{max-width:560px; margin:0 auto; padding:16px; padding-bottom:50px;}
+.screen{display:none;}
+.screen.active{display:block;}
+.card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px; margin-bottom:14px; text-align:center;}
+.card h2{margin:0 0 10px; font-size:1.1rem; color:var(--gold);}
+.card p{font-size:.92rem; line-height:1.5; color:var(--text);}
+.bigBtn{display:block; width:100%; padding:16px; border:none; border-radius:14px; background:var(--accent);
+  color:#fff; font-size:1.05rem; font-weight:800; margin-top:12px;}
+.bigBtn.green{background:var(--accent2);}
+.bigBtn.gold{background:var(--gold); color:#2a2000;}
+.cardGrid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+.cardTile{background:var(--border); border:2px solid var(--accent); border-radius:14px; padding:22px 0; font-size:1.4rem; font-weight:800; color:#fff;}
+.cardTile.done{background:var(--accent2); border-color:var(--accent2); opacity:.6;}
+.cardTile.bad{background:var(--bad); border-color:var(--bad);}
+table.gTable{width:100%; border-collapse:collapse; margin:12px 0; font-size:.88rem;}
+table.gTable th, table.gTable td{border:1px solid var(--border); padding:8px 4px; text-align:center;}
+table.gTable th{background:var(--border); color:var(--gold);}
+.cellBtn{width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-weight:800; font-size:.95rem;}
+.cellBtn.set1{background:var(--tintA); border-color:var(--accent);}
+.cellBtn.correct{background:var(--tintG); border-color:var(--accent2);}
+.cellBtn.wrong{background:var(--tintB); border-color:var(--bad);}
+.errCell{cursor:pointer;}
+.errCell.caught{background:var(--tintG)!important; border-color:var(--accent2)!important;}
+.errCell.falsealarm{background:var(--tintB)!important; border-color:var(--bad)!important;}
+.opt{display:block; width:100%; text-align:left; border:1px solid var(--border); background:var(--bg); color:var(--text);
+  padding:12px 14px; border-radius:10px; margin-bottom:8px; font-size:.95rem;}
+.opt.sel{border-color:var(--accent); background:var(--tintA);}
+.opt.correctSel{border-color:var(--accent2); background:var(--tintG);}
+.opt.wrongSel{border-color:var(--bad); background:var(--tintB);}
+.scoreTag{display:inline-block; background:var(--gold); color:#2a2000; font-weight:800; font-size:.85rem; padding:4px 12px; border-radius:10px; margin-top:8px;}
+.stars{font-size:2.2rem; margin:10px 0;}
+.testLink{display:block; text-align:center; width:100%; margin-top:14px; padding:16px; border-radius:14px;
+  background:linear-gradient(120deg,var(--accent2),var(--accent)); color:#fff; font-size:1.02rem; font-weight:800; text-decoration:none;}
+.shareHint{font-size:.78rem; color:var(--muted); margin-top:10px;}
+.confetti{position:fixed; top:-12px; width:8px; height:14px; opacity:.95; z-index:50; animation-name:fall; animation-timing-function:linear; animation-fill-mode:forwards;}
+@keyframes fall{ to { transform: translateY(110vh) rotate(360deg); opacity:.25; } }
+footer{text-align:center; color:var(--muted); font-size:.75rem; padding:10px 16px 30px;}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎮 Ойын: Ақиқат кестесін тұрғызу</h1>
+  <p>9-сынып · ІІ тоқсан · 4-сабақ · Компьютердің логикалық негіздері</p>
+</header>
+<div class="progressWrap"><div class="progressBar" id="progressBar"></div></div>
+
+<main>
+
+  <!-- START -->
+  <div class="screen active" id="scr-start">
+    <div class="card">
+      <h2>Логика шебері 🧩</h2>
+      <p>Мақсат (9.2.1.2): берілген логикалық өрнекке ақиқат кестесін тұрғызу.</p>
+      <p>4 деңгей бар: комбинацияларды тап → кестені құр → қатені аула → жағдаятты шеш. Әр деңгей үшін ұпай жинайсың!</p>
+      <button class="bigBtn" id="startBtn">▶️ Ойынды бастау</button>
+    </div>
+  </div>
+
+  <!-- LEVEL 1 -->
+  <div class="screen" id="scr-l1">
+    <div class="card">
+      <h2>1-деңгей: Комбинацияларды тап</h2>
+      <p>2 айнымалы (A, B) болғанда мүмкін комбинацияларға ретімен тиіп шық: <b>00 → 01 → 10 → 11</b></p>
+      <div class="cardGrid" id="l1grid"></div>
+      <p id="l1msg" style="color:var(--muted); font-size:.85rem;"></p>
+    </div>
+  </div>
+
+  <!-- LEVEL 2 -->
+  <div class="screen" id="scr-l2">
+    <div class="card">
+      <h2>2-деңгей: Кестені құр</h2>
+      <p><b>F = A ∧ ¬B</b> функциясы үшін бос ұяшықтарды толтыр (0 немесе 1 бас):</p>
+      <table class="gTable" id="l2table"></table>
+      <button class="bigBtn" id="l2checkBtn">✅ Тексеру</button>
+      <p id="l2msg" style="color:var(--muted); font-size:.85rem;"></p>
+    </div>
+  </div>
+
+  <!-- LEVEL 3 -->
+  <div class="screen" id="scr-l3">
+    <div class="card">
+      <h2>3-деңгей: Қате аңшысы 🔍</h2>
+      <p>Бұл кестеде (<b>F = A ∧ ¬B</b>) бір жолда қате бар! Қате ұяшық(тар)ды тап басып тап.</p>
+      <table class="gTable" id="l3table"></table>
+      <p id="l3msg" style="color:var(--muted); font-size:.85rem;"></p>
+      <button class="bigBtn" id="l3doneBtn" style="display:none;">Келесі деңгей →</button>
+    </div>
+  </div>
+
+  <!-- LEVEL 4 -->
+  <div class="screen" id="scr-l4">
+    <div class="card">
+      <h2>4-деңгей: Жағдаят 🚦</h2>
+      <p>Құрылғы <b>рұқсат бар (A)</b> ЖӘНЕ <b>тыйым жоқ (B=0)</b> болғанда ғана іске қосылады. Қай жол (A,B) құрылғыны іске қосады?</p>
+      <div id="l4opts"></div>
+      <p id="l4msg" style="color:var(--muted); font-size:.85rem;"></p>
+    </div>
+  </div>
+
+  <!-- FINAL -->
+  <div class="screen" id="scr-final">
+    <div class="card">
+      <h2>🏁 Нәтиже</h2>
+      <div class="stars" id="starsBox"></div>
+      <p>Жалпы ұпай: <b id="totalScoreText">0</b> / 400</p>
+      <div class="scoreTag" id="gradeTag"></div>
+      <a class="testLink" href="#" id="testLinkBtn" target="_blank">🧠 Жеке тестке өту →</a>
+      <p class="shareHint">📲 Бұл ойынның сілтемесін көшіріп, Ватсапқа немесе кез келген жерге жіберуге болады — телефонда тікелей ашылады.</p>
+    </div>
+  </div>
+
+</main>
+<footer>9-сынып · Информатика · Ақиқат кестесін тұрғызу — ойын</footer>
+
+<script>
+var TEST_URL = "aqiqat-oyin-test.html";
+document.getElementById('testLinkBtn').href = TEST_URL;
+
+var totalScore = 0;
+var screens = ['scr-start','scr-l1','scr-l2','scr-l3','scr-l4','scr-final'];
+function showScreen(id){
+  for (var i=0;i<screens.length;i++){
+    document.getElementById(screens[i]).classList.remove('active');
+  }
+  document.getElementById(id).classList.add('active');
+  var idx = screens.indexOf(id);
+  document.getElementById('progressBar').style.width = Math.round((idx/(screens.length-1))*100)+'%';
+  window.scrollTo(0,0);
+}
+
+document.getElementById('startBtn').onclick = function(){ initL1(); showScreen('scr-l1'); };
+
+/* ---------- LEVEL 1 ---------- */
+function initL1(){
+  var combos = ['00','01','10','11'];
+  var shuffled = combos.slice().sort(function(){ return Math.random()-0.5; });
+  var grid = document.getElementById('l1grid');
+  grid.innerHTML = '';
+  var expectedIdx = 0;
+  var mistakes = 0;
+  shuffled.forEach(function(val){
+    var btn = document.createElement('button');
+    btn.className = 'cardTile';
+    btn.textContent = val;
+    btn.onclick = function(){
+      if(btn.classList.contains('done')) return;
+      if(val === combos[expectedIdx]){
+        btn.classList.add('done');
+        expectedIdx++;
+        if(expectedIdx === combos.length){
+          document.getElementById('l1msg').textContent = 'Тамаша! Барлық комбинация табылды. ✅';
+          var score = Math.max(100 - mistakes*15, 40);
+          totalScore += score;
+          setTimeout(function(){ initL2(); showScreen('scr-l2'); }, 900);
+        }
+      } else {
+        mistakes++;
+        btn.classList.add('bad');
+        document.getElementById('l1msg').textContent = 'Басқа комбинацияны ізде, бұл кезек жоқ 🙂';
+        setTimeout(function(){ btn.classList.remove('bad'); }, 400);
+      }
+    };
+    grid.appendChild(btn);
+  });
+  document.getElementById('l1msg').textContent = '';
+}
+
+/* ---------- LEVEL 2 ---------- */
+var l2rows = [
+  {A:0,B:0,notB:1,F:0},
+  {A:0,B:1,notB:0,F:0},
+  {A:1,B:0,notB:1,F:1},
+  {A:1,B:1,notB:0,F:0}
+];
+var l2answers = {};
+function initL2(){
+  var html = '<tr><th>A</th><th>B</th><th>¬B</th><th>F=A∧¬B</th></tr>';
+  l2rows.forEach(function(r,i){
+    html += '<tr><td>'+r.A+'</td><td>'+r.B+'</td>'+
+      '<td><button class="cellBtn" data-row="'+i+'" data-field="notB" data-val="">?</button></td>'+
+      '<td><button class="cellBtn" data-row="'+i+'" data-field="F" data-val="">?</button></td></tr>';
+  });
+  document.getElementById('l2table').innerHTML = html;
+  l2answers = {};
+  var btns = document.querySelectorAll('#l2table .cellBtn');
+  for (var i=0;i<btns.length;i++){
+    btns[i].onclick = function(){
+      var cur = this.getAttribute('data-val');
+      var next = (cur === '1') ? '0' : '1';
+      this.setAttribute('data-val', next);
+      this.textContent = next;
+      this.classList.toggle('set1', next==='1');
+    };
+  }
+  document.getElementById('l2msg').textContent = '';
+}
+document.getElementById('l2checkBtn').onclick = function(){
+  var btns = document.querySelectorAll('#l2table .cellBtn');
+  var correctCount = 0;
+  for (var i=0;i<btns.length;i++){
+    var row = parseInt(btns[i].getAttribute('data-row'));
+    var field = btns[i].getAttribute('data-field');
+    var val = btns[i].getAttribute('data-val');
+    var expected = String(l2rows[row][field]);
+    if(val === expected){
+      btns[i].classList.add('correct');
+      btns[i].classList.remove('wrong');
+      correctCount++;
+    } else {
+      btns[i].classList.add('wrong');
+      btns[i].classList.remove('correct');
+    }
+    btns[i].disabled = true;
+  }
+  var score = Math.round((correctCount/btns.length)*100);
+  totalScore += score;
+  document.getElementById('l2msg').textContent = correctCount+'/'+btns.length+' дұрыс. Ұпай: '+score;
+  document.getElementById('l2checkBtn').style.display = 'none';
+  setTimeout(function(){ initL3(); showScreen('scr-l3'); }, 1400);
+};
+
+/* ---------- LEVEL 3 ---------- */
+var l3data = [
+  {A:0,B:0,notB:1,F:0,wrong:false},
+  {A:0,B:1,notB:0,F:0,wrong:false},
+  {A:1,B:0,notB:0,F:0,wrong:true},
+  {A:1,B:1,notB:0,F:0,wrong:false}
+];
+var l3caught = 0, l3falseAlarms = 0, l3totalWrong = 0;
+function initL3(){
+  l3caught = 0; l3falseAlarms = 0; l3totalWrong = 0;
+  var html = '<tr><th>A</th><th>B</th><th>¬B</th><th>F=A∧¬B</th></tr>';
+  l3data.forEach(function(r,i){
+    var notBClass = r.wrong ? 'errCell' : 'errCell';
+    html += '<tr><td>'+r.A+'</td><td>'+r.B+'</td>'+
+      '<td class="'+notBClass+'" data-row="'+i+'" data-field="notB">'+r.notB+'</td>'+
+      '<td class="'+notBClass+'" data-row="'+i+'" data-field="F">'+r.F+'</td></tr>';
+    if(r.wrong) l3totalWrong += 2;
+  });
+  document.getElementById('l3table').innerHTML = html;
+  document.getElementById('l3doneBtn').style.display = 'none';
+  var cells = document.querySelectorAll('#l3table .errCell');
+  for (var i=0;i<cells.length;i++){
+    cells[i].onclick = function(){
+      if(this.classList.contains('caught') || this.classList.contains('falsealarm')) return;
+      var row = parseInt(this.getAttribute('data-row'));
+      if(l3data[row].wrong){
+        this.classList.add('caught');
+        l3caught++;
+      } else {
+        this.classList.add('falsealarm');
+        l3falseAlarms++;
+      }
+      checkL3Done();
+    };
+  }
+  document.getElementById('l3msg').textContent = 'Қате(лер)ді тап басып көрсет.';
+}
+function checkL3Done(){
+  if(l3caught >= l3totalWrong){
+    var score = Math.max(100 - l3falseAlarms*20, 20);
+    totalScore += score;
+    document.getElementById('l3msg').textContent = 'Тапты! Ұпай: '+score+' (10-жолда A=1,B=0 болғанда ¬B=1, F=1 болуы керек еді)';
+    document.getElementById('l3doneBtn').style.display = 'block';
+  }
+}
+document.getElementById('l3doneBtn').onclick = function(){ initL4(); showScreen('scr-l4'); };
+
+/* ---------- LEVEL 4 ---------- */
+function initL4(){
+  var opts = [
+    {label:'A=0, B=0', correct:false},
+    {label:'A=0, B=1', correct:false},
+    {label:'A=1, B=0', correct:true},
+    {label:'A=1, B=1', correct:false}
+  ];
+  var shuffled = opts.slice().sort(function(){ return Math.random()-0.5; });
+  var container = document.getElementById('l4opts');
+  container.innerHTML = '';
+  var answered = false;
+  var attempts = 0;
+  shuffled.forEach(function(o){
+    var btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = o.label;
+    btn.onclick = function(){
+      if(answered) return;
+      attempts++;
+      if(o.correct){
+        btn.classList.add('correctSel');
+        answered = true;
+        var score = attempts === 1 ? 100 : 50;
+        totalScore += score;
+        document.getElementById('l4msg').textContent = 'Дұрыс! Ұпай: '+score;
+        setTimeout(function(){ showFinal(); showScreen('scr-final'); }, 1100);
+      } else {
+        btn.classList.add('wrongSel');
+        btn.disabled = true;
+        document.getElementById('l4msg').textContent = 'Қайта ойлан...';
+      }
+    };
+    container.appendChild(btn);
+  });
+  document.getElementById('l4msg').textContent = '';
+}
+
+/* ---------- FINAL ---------- */
+function showFinal(){
+  document.getElementById('totalScoreText').textContent = totalScore;
+  var pct = totalScore/400;
+  var stars = pct >= 0.9 ? '⭐⭐⭐' : (pct >= 0.65 ? '⭐⭐' : '⭐');
+  document.getElementById('starsBox').textContent = stars;
+  var grade = pct >= 0.9 ? 'Логика шебері!' : (pct >= 0.65 ? 'Жақсы нәтиже!' : 'Жаттығуды жалғастыр!');
+  document.getElementById('gradeTag').textContent = grade;
+  if(pct >= 0.9){ fireConfetti(); }
+}
+function fireConfetti(){
+  var colors = ['#5aa5ff','#ffcf4d','#3fd39a','#ff8fd1','#8a5cff'];
+  for (var i=0;i<70;i++){
+    (function(){
+      var c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = (Math.random()*100)+'vw';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDuration = (2+Math.random()*2.2)+'s';
+      c.style.animationDelay = (Math.random()*0.6)+'s';
+      document.body.appendChild(c);
+      setTimeout(function(){ c.remove(); }, 5200);
+    })();
+  }
+}
+</script>
+
+</body>
+</html>
